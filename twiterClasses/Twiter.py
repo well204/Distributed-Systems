@@ -75,6 +75,10 @@ class Twiter:
 			return True
   
 	def likeRemote(self, userName: str, tweetId: int) -> str:
+
+		if tweetId not in self.getUserByUsername(userName).getInbox().getTimeline().keys():
+			return "Tweet inexistente"
+		
 		if tweetId < 0 or tweetId > self.__nextTweetId:
 			return "Tweet inexistente"
 		else:
@@ -104,6 +108,9 @@ class Twiter:
 
 
 	def sendRt(self, userName: str, tweetId: int, rtMsg: str) -> str:
+		if tweetId not in self.getUserByUsername(userName).getInbox().getTimeline().keys():
+			return "Tweet inexistente"
+
 		if tweetId < 0 or tweetId > self.__nextTweetId:
 			return "Tweet inexistente"
 		else:
