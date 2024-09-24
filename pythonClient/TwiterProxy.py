@@ -8,24 +8,35 @@ from twiterClasses import *
 class TwiterProxy:
     def __init__(self):
         self.__requestId: int = 0
-        self.__client = UDPClient('localhost',60000)
+        self.__client = UDPClient('localhost', 60000)
 
     def doOperation(self, objectReference: str, methodId: str, arguments: List[str]):
         self.__requestId += 1
-        message = Mensagem(0,self.__requestId,objectReference,methodId, arguments)
-        try:
-            # Serializa a mensagem para JSON
-            serialized_message = message.to_json()
-            
-            # Envia a mensagem para o servidor
-            self.__client.sendRequest(serialized_message)
+        message = Mensagem(0, self.__requestId, objectReference, methodId, arguments)
+        serialized_message = message.to_json()
 
-            response = self.__client.getResponse()
-            # Deserializa a resposta
-            
-            return json.loads(response[0].decode('utf-8'))
-        except AttributeError:
-            print('alguma coisa')
+        attempts = 0
+        max_attempts = 3
+
+        while attempts < max_attempts:
+            try:
+                # Envia a mensagem para o servidor
+                self.__client.sendRequest(serialized_message)
+
+                # Tenta obter a resposta do servidor (timeout definido no UDPClient)
+                response = self.__client.getResponse()
+
+                # Deserializa a resposta e retorna
+                return json.loads(response[0].decode('utf-8'))
+
+            except TimeoutError:
+                attempts += 1
+                print(f"Tentativa {attempts} de {max_attempts} falhou devido ao timeout.")
+
+        # Se todas as tentativas falharem, avisa que o servidor pode ter caído
+        print("Servidor pode estar offline. Não foi possível obter resposta.")
+        return None  # Retorna None para indicar falha
+
 
     def add(self, userName: str) -> bool:
         newUser = User(userName)
@@ -35,6 +46,9 @@ class TwiterProxy:
 
         finalResponse = self.doOperation(newUser.userToJson(),'add',argumentsList)
         
+        if finalResponse is None:
+            print("Não foi possível se comunicar com o servidor. Operação falhou.")
+            return False
         
         mensagem = Mensagem.from_json(json.dumps(finalResponse))
         
@@ -56,7 +70,10 @@ class TwiterProxy:
 
         finalResponse = self.doOperation('objRef','show',argumentsList)
         
-        
+        if finalResponse is None:
+            print("Não foi possível se comunicar com o servidor. Operação falhou.")
+            return False
+
         mensagem = Mensagem.from_json(json.dumps(finalResponse))
         print("\n" + mensagem.objectReference)
 
@@ -69,7 +86,10 @@ class TwiterProxy:
 
         finalResponse = self.doOperation('objRef','follow',argumentsList)
         
-        
+        if finalResponse is None:
+            print("Não foi possível se comunicar com o servidor. Operação falhou.")
+            return False
+
         mensagem = Mensagem.from_json(json.dumps(finalResponse))
         
         print("\n" + mensagem.objectReference)
@@ -82,7 +102,10 @@ class TwiterProxy:
 
         finalResponse = self.doOperation(newTweet.to_json(),'tweetar',argumentsList)
         
-        
+        if finalResponse is None:
+            print("Não foi possível se comunicar com o servidor. Operação falhou.")
+            return False
+
         mensagem = Mensagem.from_json(json.dumps(finalResponse))
         
         postedTweet: 'Tweet' = Tweet.from_json(mensagem.objectReference)
@@ -97,6 +120,10 @@ class TwiterProxy:
         argumentsList = request.split(',')
 
         finalResponse = self.doOperation(userWhoRequest.userToJson(),'timeline',argumentsList)
+
+        if finalResponse is None:
+            print("Não foi possível se comunicar com o servidor. Operação falhou.")
+            return False
         
         mensagem = Mensagem.from_json(json.dumps(finalResponse))
         
@@ -113,6 +140,10 @@ class TwiterProxy:
         argumentsList = request.split(',')
 
         finalResponse = self.doOperation('objRef','like',argumentsList)
+
+        if finalResponse is None:
+            print("Não foi possível se comunicar com o servidor. Operação falhou.")
+            return False
         
         mensagem = Mensagem.from_json(json.dumps(finalResponse))
         
@@ -128,6 +159,10 @@ class TwiterProxy:
         argumentsList = request.split(',')
 
         finalResponse = self.doOperation('objRef','unfollow',argumentsList)
+
+        if finalResponse is None:
+            print("Não foi possível se comunicar com o servidor. Operação falhou.")
+            return False
         
         
         mensagem = Mensagem.from_json(json.dumps(finalResponse))
@@ -141,6 +176,10 @@ class TwiterProxy:
         argumentsList = request.split(',')
 
         finalResponse = self.doOperation('objRef','rt',argumentsList)
+
+        if finalResponse is None:
+            print("Não foi possível se comunicar com o servidor. Operação falhou.")
+            return False
         
         
         mensagem = Mensagem.from_json(json.dumps(finalResponse))
@@ -157,6 +196,10 @@ class TwiterProxy:
         argumentsList = request.split(',')
 
         finalResponse = self.doOperation('objRef','rm',argumentsList)
+
+        if finalResponse is None:
+            print("Não foi possível se comunicar com o servidor. Operação falhou.")
+            return False
         
         mensagem = Mensagem.from_json(json.dumps(finalResponse))
         
@@ -171,6 +214,10 @@ class TwiterProxy:
         argumentsList = request.split(',')
 
         finalResponse = self.doOperation('objRef', 'end', argumentsList)
+
+        if finalResponse is None:
+            print("Não foi possível se comunicar com o servidor. Operação falhou.")
+            return False
 
         mensagem = Mensagem.from_json(json.dumps(finalResponse))
         

@@ -15,6 +15,7 @@ def main():
         if(not server_socket.getRequestStack().is_empty()):
             lastStackTop = server_socket.getRequestStack().peek()
         data, addr = server_socket.getRequest()
+        
         if(lastStackTop == (data, addr)):
             print('DUPLICADO: ', end='')
             
