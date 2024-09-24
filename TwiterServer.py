@@ -22,9 +22,10 @@ def main():
         print(f"Recebido de {addr}: {data.decode('utf-8')}")
         print()
         theResponse = despachante.invoke(data)
-        server_socket.sendResponse(theResponse,addr)
-        print(f"Enviado para {addr}: {theResponse}")
-        print()
+        if (server_socket.getMaxRequest() > 1):
+            server_socket.sendResponse(theResponse,addr)
+            print(f"Enviado para {addr}: {theResponse}")
+            print()
 		
 # Thread(target=main()).start()
 main()

@@ -8,6 +8,7 @@ class UDPServer:
         self.__serverSocket = socket(AF_INET, SOCK_DGRAM)
         self.__serverSocket.bind((self.__host, self.__port))
         self.__requestStack: 'Stack' = Stack()
+        self.__maxRequest = 5
             
     def getRequest(self): 
         data, addr = self.__serverSocket.recvfrom(1024)
@@ -16,6 +17,10 @@ class UDPServer:
 
     def sendResponse(self, response: str, addr):
         self.__serverSocket.sendto(response.encode('utf-8'), addr)
+        self.__maxRequest -= 1
     
     def getRequestStack(self):
         return self.__requestStack
+    
+    def getMaxRequest(self):
+        return self.__maxRequest
