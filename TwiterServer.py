@@ -2,30 +2,31 @@ from server import UDPServer
 from server import Despachante
 # from threading import Thread
 
+# Dicionário para armazenar as mensagens e suas respostas
+message_store = {}
+
 def main():
     despachante = Despachante()
     server_socket = UDPServer('localhost', 60000)
-
-    # Vincula o socket a um endereço e porta
+    
     print("Servidor UDP aguardando mensagens...")
 
     while True:
-        # Recebe dados do cliente
-        lastStackTop = None
-        if(not server_socket.getRequestStack().is_empty()):
-            lastStackTop = server_socket.getRequestStack().peek()
         data, addr = server_socket.getRequest()
-        
-        if(lastStackTop == (data, addr)):
-            print('DUPLICADO: ', end='')
-            
-        print(f"Recebido de {addr}: {data.decode('utf-8')}")
-        print()
-        theResponse = despachante.invoke(data)
-        if (server_socket.getMaxRequest() > 1):
-            server_socket.sendResponse(theResponse,addr)
+        decoded_data = data.decode('utf-8')
+
+        if decoded_data in message_store:
+            # Se a mensagem já está no dicionário, envia a resposta armazenada
+            print(f"DUPLICADO: {decoded_data}")
+            response = message_store[decoded_data]
+            server_socket.sendResponse(response, addr)
+        else:
+            # Processa a nova mensagem e armazena no dicionário
+            print(f"Recebido de {addr}: {decoded_data}")
+            theResponse = despachante.invoke(data)
+            message_store[decoded_data] = theResponse  # Armazena a resposta
+            server_socket.sendResponse(theResponse, addr)
             print(f"Enviado para {addr}: {theResponse}")
             print()
-		
-# Thread(target=main()).start()
+
 main()
